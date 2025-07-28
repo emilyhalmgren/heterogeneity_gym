@@ -234,7 +234,7 @@ class RectangleModel:
         return structures
 
     def render_images_from_latent(
-        self, latent_samples: torch.tensor, noise_std: Optional[float] = None
+        self, latent_samples: torch.tensor, noise_std = None
     ) -> Tuple[torch.tensor, torch.tensor]:
     #) -> Tuple[torch.tensor, torch.tensor, torch.tensor]:
         if noise_std is None:
@@ -245,7 +245,7 @@ class RectangleModel:
         return images, structures
 
     def render_images_from_structures(
-        self, structures: torch.tensor, noise_std: Optional[float] = None
+        self, structures: torch.tensor, noise_std= None
     ) -> torch.tensor:
         """ """
         if noise_std is None:
@@ -261,7 +261,13 @@ class RectangleModel:
         sq_distances = torch.sum(sq_displacements, dim=-3)  # ... x Atom x Npix x Npix
         kernel = torch.exp(-sq_distances / (2 * self.atom_variance))
         image = torch.sum(kernel, dim=-3)  # ... x Npix x Npix
-        image = image + torch.randn_like(image) * noise_std
+
+        noise = torch.randn_like(image)
+    
+        if torch.is_tensor(noise_std) and noise_std.numel()>1:
+            # reshape noise_std 
+            noise_std = noise_std.view(-1, 1, 1)
+        image = image + noise * noise_std
         return image
 
     def evaluate_log_pij_matrix(
@@ -270,9 +276,9 @@ class RectangleModel:
         simulated_images: torch.tensor,
         noise_std: float,
     ) -> torch.tensor:
-        """ """
-        experimental_images = experimental_images.unsqueeze(-4)
-        simulated_images = simulated_images.unsqueeze(-3)
+        '''returns Pij matrix where rows are experimental images and columns are simulated images (this is different from the original code)'''
+        experimental_images = experimental_images.unsqueeze(-3)
+        simulated_images = simulated_images.unsqueeze(-4)
         difference = torch.sum(
             (experimental_images - simulated_images) ** 2, dim=(-1, -2)
         )
@@ -284,10 +290,22 @@ class RectangleModel:
         simulated_images: torch.tensor,
         noise_std: float,
     ) -> torch.tensor:
-        experimental_images = experimental_images.unsqueeze(-4)
-        simulated_images = simulated_images.unsqueeze(-3)
+        '''returns Pij matrix where rows are experimental images and columns are simulated images (this is different from the original code)'''
+        experimental_images = experimental_images.unsqueeze(-3)
+        simulated_images = simulated_images.unsqueeze(-4)
+        print("experimental_images shape:", experimental_images.shape)
+        print("simulated_images shape:", simulated_images.shape)
         difference = torch.sum(
             (experimental_images - simulated_images) ** 2, dim=(-1, -2)
         )
+        if torch.is_tensor(noise_std) and noise_std.numel() > 1:
+            # noise_std has shape (N_raw,)
+            # difference has shape (N_raw, N_clean)
+            # Reshape noise_std to (N_raw, 1) for broadcasting
+            noise_std = noise_std.view(-1, 1)
+
+        print("difference before subtracting mean", difference)
+    
         difference = difference - torch.mean(difference) # subtract the max so we don't get 0 for the negative exponential
+        print("difference after subtracting mean", difference)
         return torch.exp(-1 * difference / (2 * noise_std**2))
