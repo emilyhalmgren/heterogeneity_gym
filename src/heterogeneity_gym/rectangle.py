@@ -305,7 +305,16 @@ class RectangleModel:
             noise_std = noise_std.view(-1, 1)
 
         print("difference before subtracting mean", difference)
+        loglikelihood = -1 * difference / (2 * noise_std**2)
+        print("loglikelihood", loglikelihood)
+
+        # Normalize the loglikelihood to avoid numerical issues
+        # by subtracting the maximum value in each row
+        # This ensures that the maximum loglikelihood is 0, which avoids exp(0) = 1
+        # and prevents numerical overflow in the exponential function.
+        loglikelihood = loglikelihood - torch.max(loglikelihood, dim=-1, keepdim=True)[0]
     
-        difference = difference - torch.mean(difference) # subtract the max so we don't get 0 for the negative exponential
-        print("difference after subtracting mean", difference)
-        return torch.exp(-1 * difference / (2 * noise_std**2))
+        # difference = difference - torch.max(difference, dim=-1, keepdim=True)[0] # subtract the max so we don't get 0 for the negative exponential
+        # print("difference after subtracting mean", difference)
+        # return torch.exp(-1 * difference / (2 * noise_std**2))
+        return torch.exp(loglikelihood)
