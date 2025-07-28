@@ -209,7 +209,7 @@ class RectangleModel:
         """
         latent_samples = self.latent_density.sample(num_samples, shuffle=shuffle)
         images, structures = self.render_images_from_latent(latent_samples)
-        return images, structures, latent_samples
+        return images, structures, latent_samples 
 
     def construct_structures(
         self, latent_samples: torch.tensor
@@ -235,7 +235,8 @@ class RectangleModel:
 
     def render_images_from_latent(
         self, latent_samples: torch.tensor, noise_std: Optional[float] = None
-    ) -> Tuple[torch.tensor, torch.tensor, torch.tensor]:
+    ) -> Tuple[torch.tensor, torch.tensor]:
+    #) -> Tuple[torch.tensor, torch.tensor, torch.tensor]:
         if noise_std is None:
             noise_std = self.noise_std
 
@@ -276,3 +277,17 @@ class RectangleModel:
             (experimental_images - simulated_images) ** 2, dim=(-1, -2)
         )
         return -1 * difference / (2 * noise_std**2)
+    
+    def evaluate_pij_matrix(
+        self,
+        experimental_images: torch.tensor,
+        simulated_images: torch.tensor,
+        noise_std: float,
+    ) -> torch.tensor:
+        experimental_images = experimental_images.unsqueeze(-4)
+        simulated_images = simulated_images.unsqueeze(-3)
+        difference = torch.sum(
+            (experimental_images - simulated_images) ** 2, dim=(-1, -2)
+        )
+        difference = difference - torch.mean(difference) # subtract the max so we don't get 0 for the negative exponential
+        return torch.exp(-1 * difference / (2 * noise_std**2))
