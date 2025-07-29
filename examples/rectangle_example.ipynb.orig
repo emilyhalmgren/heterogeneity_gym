@@ -42,17 +42,27 @@
   },
   {
    "cell_type": "code",
+<<<<<<< HEAD
    "execution_count": null,
+=======
+
+   "execution_count": 15,
+>>>>>>> f724cce53df0ec16f13ede2c046e5aac10f72147
    "metadata": {},
    "outputs": [
     {
      "name": "stdout",
      "output_type": "stream",
      "text": [
-
+<<<<<<< HEAD
       "Noise std list: tensor([ 10.0000,  20.0000,  30.0000,  40.0000,  50.0000,  60.0000,  70.0000,\n",
       "         80.0000,  90.0000, 100.0000])\n",
       "Observed Signal to noise ratio: [tensor(9.3118e-05), tensor(2.3280e-05), tensor(1.0346e-05), tensor(5.8199e-06), tensor(3.7247e-06), tensor(2.5866e-06), tensor(1.9004e-06), tensor(1.4550e-06), tensor(1.1496e-06), tensor(9.3118e-07)]\n",
+=======
+
+      "Noise std list: tensor([ 100.,  200.,  300.,  400.,  500.,  600.,  700.,  800.,  900., 1000.])\n",
+      "Observed Signal to noise ratio: [tensor(8.4650e-07), tensor(2.1163e-07), tensor(9.4056e-08), tensor(5.2906e-08), tensor(3.3860e-08), tensor(2.3514e-08), tensor(1.7276e-08), tensor(1.3227e-08), tensor(1.0451e-08), tensor(8.4650e-09)]\n",
+>>>>>>> f724cce53df0ec16f13ede2c046e5aac10f72147
       "experimental_images shape: torch.Size([10, 1, 128, 128])\n",
       "simulated_images shape: torch.Size([1, 10, 128, 128])\n",
       "difference before subtracting mean tensor([[1.6567e+06, 1.6572e+06, 1.6571e+06, 1.6572e+06, 1.6571e+06, 1.6575e+06,\n",
