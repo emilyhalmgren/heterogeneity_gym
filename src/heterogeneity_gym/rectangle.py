@@ -293,8 +293,8 @@ class RectangleModel:
         '''returns Pij matrix where rows are experimental images and columns are simulated images (this is different from the original code)'''
         experimental_images = experimental_images.unsqueeze(-3)
         simulated_images = simulated_images.unsqueeze(-4)
-        print("experimental_images shape:", experimental_images.shape)
-        print("simulated_images shape:", simulated_images.shape)
+        #print("experimental_images shape:", experimental_images.shape)
+        #print("simulated_images shape:", simulated_images.shape)
         difference = torch.sum(
             (experimental_images - simulated_images) ** 2, dim=(-1, -2)
         )
@@ -304,9 +304,9 @@ class RectangleModel:
             # Reshape noise_std to (N_raw, 1) for broadcasting
             noise_std = noise_std.view(-1, 1)
 
-        print("difference before subtracting mean", difference)
+        #print("difference before subtracting mean", difference)
         loglikelihood = -1 * difference / (2 * noise_std**2)
-        print("loglikelihood", loglikelihood)
+        #print("loglikelihood", loglikelihood)
 
         # Normalize the loglikelihood to avoid numerical issues
         # by subtracting the maximum value in each row
@@ -317,4 +317,5 @@ class RectangleModel:
         # difference = difference - torch.max(difference, dim=-1, keepdim=True)[0] # subtract the max so we don't get 0 for the negative exponential
         # print("difference after subtracting mean", difference)
         # return torch.exp(-1 * difference / (2 * noise_std**2))
-        return torch.exp(loglikelihood)
+        return torch.exp(loglikelihood) 
+    

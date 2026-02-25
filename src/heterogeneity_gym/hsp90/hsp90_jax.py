@@ -212,6 +212,53 @@ class DiscreteClassModel:
         self.key = new_keys[-1]
         return images, (defocus, astigmatism)
 
+    def evaluate_pij_matrix(
+        self,
+        experimental_images,
+        simulated_images,
+        noise_std,
+    ):
+        """
+        Computes the pij matrix from pre-rendered images.
+        
+        Parameters
+        ----------
+        experimental_images : jnp.ndarray
+            Experimental images with shape (N_experimental, height, width)
+        simulated_images : jnp.ndarray
+            Simulated images with shape (N_simulated, height, width)
+        noise_std : float or jnp.ndarray
+            Noise standard deviation. Can be a scalar or array of shape (N_experimental,)
+        
+        Returns
+        -------
+        pij_matrix : jnp.ndarray
+            Matrix where rows are experimental images and columns are simulated images.
+            Shape is (N_experimental, N_simulated)
+        """
+        # Add new axes: (N_exp, H, W) -> (N_exp, 1, H, W) and (N_sim, H, W) -> (1, N_sim, H, W)
+        experimental_images = jnp.expand_dims(experimental_images, axis=1)
+        simulated_images = jnp.expand_dims(simulated_images, axis=0)
+        
+        # Compute squared difference and sum over spatial dimensions
+        difference = jnp.sum(
+            (experimental_images - simulated_images) ** 2, axis=(-2, -1)
+        )
+        
+        # Handle noise_std as array or scalar
+        if jnp.ndim(noise_std) > 0 and noise_std.shape[0] > 1:
+            # noise_std has shape (N_exp,), reshape to (N_exp, 1) for broadcasting
+            noise_std = jnp.reshape(noise_std, (-1, 1))
+        
+        # Compute log-likelihood
+        loglikelihood = -1 * difference / (2 * noise_std**2)
+        
+        # Normalize by subtracting max value per row to avoid numerical overflow
+        loglikelihood = loglikelihood - jnp.max(loglikelihood, axis=-1, keepdims=True)
+        
+        # Return normalized pij matrix
+        return jnp.exp(loglikelihood)
+
     def evaluate_log_pij_matrix(
         self,
         experimental_images,
